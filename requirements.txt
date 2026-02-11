@@ -1,2 +1,4 @@
-flet
+streamlit
 pandas
+plotly
+st-theme
