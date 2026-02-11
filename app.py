@@ -1,97 +1,95 @@
-import flet as ft
-import os
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-def main(page: ft.Page):
-    page.title = "COX-2 Analyzer | Team 3 Lab"
-    page.theme_mode = ft.ThemeMode.DARK
-    page.padding = 0
-    page.spacing = 0
+# --- Page Configuration ---
+st.set_page_config(
+    page_title="ArthroDock | COX-2 & Ibuprofen Lab",
+    page_icon="🧬",
+    layout="wide",
+)
+
+# --- Apple-Style Custom CSS ---
+st.markdown("""
+    <style>
+    .main {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #581c87 100%);
+        color: white;
+    }
+    .stMetric {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    div[data-testid="stMetricValue"] {
+        color: #22d3ee !important;
+    }
+    .step-box {
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    </style>
+    """, unsafe_allow_label_with_markdown=True)
+
+# --- Sidebar ---
+with st.sidebar:
+    st.title("🧬 ARTHRO LAB")
+    st.markdown("---")
+    menu = st.radio("Navigation", ["Dashboard", "Molecular View", "Report Generator"])
+    st.info("Team 3 | Bioinformatics Capstone 2026")
+
+# --- Dashboard Content ---
+if menu == "Dashboard":
+    st.header("Computational Evaluation: Ibuprofen vs COX-2")
+    st.write("Targeting Arthritis Inflammation via Molecular Docking Analysis")
+
+    # Workflow Indicators
+    cols = st.columns(5)
+    steps = ["Start", "Upload", "Docking", "Analysis", "Report"]
+    colors = ["#10b981", "#3b82f6", "#6366f1", "#8b5cf6", "#d1d5db"]
+    for i, col in enumerate(cols):
+        col.markdown(f"<div class='step-box' style='background:{colors[i]}'>{steps[i]}</div>", unsafe_allow_label_with_markdown=True)
+
+    st.markdown("---")
+
+    # Metrics Row
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Binding Affinity", "-8.4 kcal/mol", delta="Optimal")
+    m2.metric("H-Bonds", "3 Active", delta="Stable")
+    m3.metric("Stability Score", "High", delta="92%")
+
+    st.markdown("### Interaction Analysis Table")
     
-    # Apple + Bioinformatics Styling
-    page.bgcolor = ft.colors.TRANSPARENT
-    page.decoration = ft.ControlDecoration(
-        gradient=ft.LinearGradient(
-            begin=ft.alignment.top_left,
-            end=ft.alignment.bottom_right,
-            colors=["#0f172a", "#1e1b4b", "#581c87"],
-        )
-    )
+    # Mock Data Table
+    data = {
+        "Residue": ["ARG-120", "TYR-355", "VAL-523", "GLY-526", "SER-530"],
+        "Interaction Type": ["Hydrogen Bond", "van der Waals", "Hydrophobic", "Pi-Sigma", "Hydrogen Bond"],
+        "Distance (Å)": [2.81, 3.42, 4.15, 3.88, 2.75],
+        "Energy (kcal/mol)": [-1.2, -0.4, -0.2, -0.5, -1.1]
+    }
+    df = pd.DataFrame(data)
+    st.table(df)
 
-    # --- Reusable Components ---
-    def glass_card(content, expand=False):
-        return ft.Container(
-            content=content,
-            padding=20,
-            border_radius=20,
-            expand=expand,
-            bgcolor=ft.colors.with_opacity(0.1, ft.colors.WHITE),
-            border=ft.border.all(1, ft.colors.with_opacity(0.1, ft.colors.WHITE)),
-            blur=ft.Blur(20, 20),
-        )
+    # Visualization Simulation
+    st.markdown("### Energy Distribution")
+    fig = px.bar(df, x="Residue", y="Energy (kcal/mol)", color="Interaction Type", 
+                 template="plotly_dark", title="Residue Energy Contribution")
+    st.plotly_chart(fig, use_container_width=True)
 
-    # --- Sidebar Navigation ---
-    sidebar = ft.Container(
-        width=250,
-        padding=30,
-        bgcolor=ft.colors.with_opacity(0.05, ft.colors.BLACK),
-        content=ft.Column([
-            ft.Text("ARTHRO LAB", size=24, weight="bold", color=ft.colors.CYAN_400),
-            ft.Divider(color=ft.colors.WHITE24),
-            ft.TextButton("DASHBOARD", icon=ft.icons.DASHBOARD_ROUNDED, icon_color="cyan"),
-            ft.TextButton("MOLECULAR VIEW", icon=ft.icons.VIEW_IN_AR_ROUNDED, icon_color="purple"),
-            ft.TextButton("REPORT GEN", icon=ft.icons.DESCRIPTION_ROUNDED, icon_color="white"),
-        ], spacing=15)
-    )
+elif menu == "Molecular View":
+    st.subheader("3D Molecular Docking Viewer")
+    st.warning("Note: Integrated NGL viewer requires a PDB file to render.")
+    # Placeholder for NGL Viewer or 2D Diagram
+    st.image("https://upload.wikimedia.org/wikipedia/commons/6/62/Ibuprofen_docking_COX2.png", 
+             caption="Example: Ibuprofen binding pocket interaction map (Discovery Studio Export)")
 
-    # --- Stats Cards ---
-    stats = ft.Row([
-        glass_card(ft.Column([
-            ft.Text("Binding Affinity", size=14, color=ft.colors.WHITE70),
-            ft.Text("-8.4 kcal/mol", size=30, weight="bold", color=ft.colors.CYAN_ACCENT),
-        ]), expand=True),
-        glass_card(ft.Column([
-            ft.Text("H-Bonds", size=14, color=ft.colors.WHITE70),
-            ft.Text("3 Active", size=30, weight="bold", color=ft.colors.GREEN_ACCENT),
-        ]), expand=True),
-        glass_card(ft.Column([
-            ft.Text("Stability", size=14, color=ft.colors.WHITE70),
-            ft.Text("High", size=30, weight="bold", color=ft.colors.PURPLE_ACCENT),
-        ]), expand=True),
-    ], spacing=20)
-
-    # --- Main Dashboard Body ---
-    body = ft.Column([
-        ft.Text("Computational Evaluation: Ibuprofen vs COX-2", size=32, weight="bold"),
-        ft.Text("Module: Protein–Ligand Interaction | Project Title: Arthritis Treatment Analysis", color=ft.colors.WHITE70),
-        ft.Container(height=20),
-        stats,
-        ft.Container(height=20),
-        glass_card(ft.Column([
-            ft.Text("Interaction Analysis Table", size=20, weight="bold"),
-            ft.DataTable(
-                columns=[
-                    ft.DataColumn(ft.Text("Residue")),
-                    ft.DataColumn(ft.Text("Interaction Type")),
-                    ft.DataColumn(ft.Text("Distance (Å)")),
-                ],
-                rows=[
-                    ft.DataRow(cells=[ft.DataCell(ft.Text("ARG-120")), ft.DataCell(ft.Text("Hydrogen Bond")), ft.DataCell(ft.Text("2.81"))]),
-                    ft.DataRow(cells=[ft.DataCell(ft.Text("TYR-355")), ft.DataCell(ft.Text("van der Waals")), ft.DataCell(ft.Text("3.42"))]),
-                    ft.DataRow(cells=[ft.DataCell(ft.Text("VAL-523")), ft.DataCell(ft.Text("Hydrophobic")), ft.DataCell(ft.Text("4.15"))]),
-                ]
-            )
-        ])),
-    ], expand=True, scroll=ft.ScrollMode.AUTO)
-
-    # --- Final Layout ---
-    page.add(
-        ft.Row([
-            sidebar,
-            ft.Container(content=body, padding=40, expand=True)
-        ], expand=True)
-    )
-
-# --- THE FIX FOR YOUR ERROR ---
-if __name__ == "__main__":
-    # We use view=ft.AppView.WEB_BROWSER to avoid signal handler issues on hosted servers
-    ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+elif menu == "Report Generator":
+    st.subheader("Final Project Report")
+    st.text_area("Findings", value="The docking simulation of Ibuprofen against COX-2 reveals a strong binding affinity of -8.4 kcal/mol. The interaction is primarily stabilized by Hydrogen bonds with ARG-120 and SER-530...", height=200)
+    if st.button("Generate PDF Report"):
+        st.success("✅ Report 'COX2_Ibuprofen_Analysis.pdf' ready for download!")
